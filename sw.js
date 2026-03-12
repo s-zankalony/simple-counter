@@ -22,12 +22,26 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+    // Only handle GET requests; let non-GET requests fall through to the network.
+    if (e.request.method !== 'GET') {
+        return;
+    }
+
+    // For navigations, try the network first and fall back to the cached app shell.
+    if (e.request.mode === 'navigate') {
+        e.respondWith(
+            fetch(e.request).catch(() =>
+                caches.match('./index.html').then((response) => response || caches.match('./'))
+            )
+        );
+        return;
+    }
+
+    // For other GET requests (assets), use cache first, then network.
     e.respondWith(
         caches.match(e.request)
-            .then(r => r || fetch(e.request))
-            .catch(() => new Response('Offline — please reconnect and reload.', {
-                status: 503,
-                headers: { 'Content-Type': 'text/plain' }
-            }))
+            .then((response) => response || fetch(e.request))
+            // On failure, fall back to any cached response instead of a generic text/plain 503.
+            .catch(() => caches.match(e.request))
     );
 });
