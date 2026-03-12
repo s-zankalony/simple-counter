@@ -169,7 +169,7 @@
         document.head.appendChild(link);
 
         // 2. إنشاء Service Worker ديناميكياً للسماح بالتثبيت والعمل بدون إنترنت
-        const base = location.href.substring(0, location.href.lastIndexOf('/') + 1);
+        const base = new URL('./', location.href).href;
         const swCode = `
             const CACHE_NAME = 'counter-v1';
             const ASSETS = ['${base}', '${base}index.html', '${base}styles.css'];
