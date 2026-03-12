@@ -1,3 +1,4 @@
+// Bump the version (e.g. counter-v2) to force re-caching after updating assets
 const CACHE_NAME = 'counter-v1';
 const ASSETS = ['./', './index.html', './styles.css'];
 
@@ -17,6 +18,11 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
     e.respondWith(
-        caches.match(e.request).then(r => r || fetch(e.request))
+        caches.match(e.request)
+            .then(r => r || fetch(e.request))
+            .catch(() => new Response('Offline — please reconnect and reload.', {
+                status: 503,
+                headers: { 'Content-Type': 'text/plain' }
+            }))
     );
 });
