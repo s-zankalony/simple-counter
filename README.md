@@ -23,7 +23,7 @@ Or deploy the file to any static hosting service (GitHub Pages, Netlify, Vercel,
 ## Tech Stack
 
 - **HTML / CSS / JavaScript** — single-file, no framework
-- **[Tailwind CSS](https://tailwindcss.com/)** — loaded via CDN for styling
+- **[Tailwind CSS](https://tailwindcss.com/)** — pre-built and served locally for full offline support
 - **Web APIs used:**
   - Screen Wake Lock API
   - Vibration API
