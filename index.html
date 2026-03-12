@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- إعدادات الشاشة لتناسب الهواتف المحمولة وتمنع التكبير العشوائي -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Simple Counter</title>
+    <!-- تضمين مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* إخفاء تأثير التحديد عند الضغط على الشاشات التي تعمل باللمس */
+        body {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        /* تأثيرات حركية للزر */
+        .btn-press {
+            transform: scale(0.96);
+        }
+        
+        /* انتقال سلس للحجم واللون */
+        button {
+            transition: all 0.15s ease-out;
+        }
+
+        /* تنسيق الخط للرقم ليكون ضخماً */
+        .number-huge {
+            font-size: clamp(6rem, 25vw, 15rem);
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="bg-black text-white h-screen w-screen flex flex-col items-center justify-center p-4 sm:p-8 overflow-hidden select-none">
+
+    <!-- الزر الرئيسي (الأحمر) -->
+    <button id="mainBtn" class="w-full flex-grow bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold rounded-[3rem] shadow-[0_0_60px_rgba(220,38,38,0.3)] flex items-center justify-center text-4xl sm:text-6xl text-center px-4">
+        Press to start counting
+    </button>
+
+    <!-- زر إعادة الضبط (يظهر بعد بدء العد) -->
+    <button id="resetBtn" class="mt-6 mb-2 px-6 py-3 bg-[#1a1a1a] hover:bg-[#2a2a2a] active:bg-[#111] text-gray-400 rounded-full text-sm tracking-widest uppercase font-semibold opacity-0 pointer-events-none border border-gray-800">
+        Reset
+    </button>
+
+    <script>
+        // تعريف المتغيرات الأساسية
+        const mainBtn = document.getElementById('mainBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        let count = 0;
+
+        // ==========================================
+        // وظائف العداد
+        // ==========================================
+
+        // إضافة تأثيرات بصرية عند الضغط
+        const addPressEffect = () => mainBtn.classList.add('btn-press');
+        const removePressEffect = () => mainBtn.classList.remove('btn-press');
+
+        mainBtn.addEventListener('mousedown', addPressEffect);
+        mainBtn.addEventListener('touchstart', addPressEffect, {passive: true});
+        mainBtn.addEventListener('mouseup', removePressEffect);
+        mainBtn.addEventListener('mouseleave', removePressEffect);
+        mainBtn.addEventListener('touchend', removePressEffect);
+
+        // وظيفة العد عند الضغط
+        mainBtn.addEventListener('click', (e) => {
+            count++;
+            
+            // تغيير النص إلى الرقم وتكبير حجم الخط
+            mainBtn.innerText = count;
+            mainBtn.classList.add('number-huge');
+            mainBtn.classList.remove('text-4xl', 'sm:text-6xl');
+
+            // إظهار زر إعادة الضبط عند أول ضغطة
+            if (count === 1) {
+                resetBtn.classList.remove('opacity-0', 'pointer-events-none');
+                resetBtn.classList.add('opacity-100');
+            }
+            
+            // إضافة اهتزاز خفيف للهاتف (Haptic Feedback) إذا كان مدعوماً
+            if (navigator.vibrate) {
+                try {
+                    navigator.vibrate(40);
+                } catch(e) {}
+            }
+        });
+
+        // وظيفة إعادة الضبط
+        resetBtn.addEventListener('click', () => {
+            count = 0;
+            
+            // إعادة الزر الرئيسي لشكله الأصلي
+            mainBtn.innerText = "Press to start counting";
+            mainBtn.classList.remove('number-huge');
+            mainBtn.classList.add('text-4xl', 'sm:text-6xl');
+            
+            // إخفاء زر إعادة الضبط
+            resetBtn.classList.add('opacity-0', 'pointer-events-none');
+            resetBtn.classList.remove('opacity-100');
+            
+            // اهتزاز مميز للتنبيه بمسح العداد
+            if (navigator.vibrate) {
+                try {
+                    navigator.vibrate([30, 50, 30]);
+                } catch(e) {}
+            }
+        });
+
+        // ==========================================
+        // إبقاء الشاشة مضيئة (Screen Wake Lock API)
+        // ==========================================
+        let wakeLock = null;
+
+        const requestWakeLock = async () => {
+            try {
+                // التحقق من دعم المتصفح للخاصية
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('تم تفعيل إبقاء الشاشة مضيئة.');
+                    
+                    wakeLock.addEventListener('release', () => {
+                        console.log('تم إلغاء إبقاء الشاشة مضيئة (تم إغلاق أو تصغير التطبيق).');
+                    });
+                }
+            } catch (err) {
+                // تم تغيير console.error إلى console.log لتجنب ظهور رسالة الخطأ المزعجة في بيئة العرض
+                // بيئة العرض المدمجة هنا (iframe) تمنع صلاحيات إبقاء الشاشة، ولكنها ستعمل عند النشر المستقل.
+                console.log(`ملاحظة: خاصية إبقاء الشاشة مضيئة معطلة في بيئة العرض الحالية بسبب سياسة الصلاحيات. ستعمل الخاصية عند نشر التطبيق. (${err.message})`);
+            }
+        };
+
+        // طلب إبقاء الشاشة مضيئة عند فتح الصفحة
+        requestWakeLock();
+
+        // إعادة طلب إبقاء الشاشة مضيئة عند العودة للتطبيق بعد تصغيره
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        // ==========================================
+        // إعدادات PWA (Progressive Web App) ديناميكية
+        // ==========================================
+        
+        // 1. إنشاء ملف Manifest ديناميكياً
+        const manifest = {
+            name: "Counter App",
+            short_name: "Counter",
+            start_url: location.href,
+            display: "standalone",
+            background_color: "#000000",
+            theme_color: "#000000",
+            icons: [{
+                // أيقونة ديناميكية بسيطة (مربع أحمر بداخله رقم)
+                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23dc2626'/><text x='50' y='70' font-size='60' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='white'>1</text></svg>",
+                sizes: "512x512",
+                type: "image/svg+xml"
+            }]
+        };
+        
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+
+        // 2. إنشاء Service Worker ديناميكياً للسماح بالتثبيت والعمل بدون إنترنت
+        const swCode = `
+            self.addEventListener('install', (e) => self.skipWaiting());
+            self.addEventListener('activate', (e) => self.clients.claim());
+            self.addEventListener('fetch', (e) => {
+                e.respondWith(fetch(e.request).catch(() => new Response('Offline Mode Active')));
+            });
+        `;
+        
+        const swBlob = new Blob([swCode], {type: 'application/javascript'});
+        const swURL = URL.createObjectURL(swBlob);
+        
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(swURL)
+                    .then(reg => console.log('PWA Service Worker Ready!'))
+                    .catch(err => console.log('PWA Setup Failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
