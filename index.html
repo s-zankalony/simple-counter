@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
     <title>Simple Counter</title>
+    <link rel="manifest" href="manifest.json">
     <!-- تضمين مكتبة Tailwind CSS للتصميم (ملف محلي مُولَّد مسبقاً) -->
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -142,33 +143,10 @@
         });
 
         // ==========================================
-        // إعدادات PWA (Progressive Web App) ديناميكية
+        // إعدادات PWA (Progressive Web App)
         // ==========================================
-        
-        // 1. إنشاء ملف Manifest ديناميكياً
-        const manifest = {
-            name: "Counter App",
-            short_name: "Counter",
-            start_url: location.href,
-            display: "standalone",
-            background_color: "#000000",
-            theme_color: "#000000",
-            icons: [{
-                // أيقونة ديناميكية بسيطة (مربع أحمر بداخله رقم)
-                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23dc2626'/><text x='50' y='70' font-size='60' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='white'>1</text></svg>",
-                sizes: "512x512",
-                type: "image/svg+xml"
-            }]
-        };
-        
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(manifestBlob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestURL;
-        document.head.appendChild(link);
 
-        // 2. تسجيل Service Worker للسماح بالتثبيت والعمل بدون إنترنت
+        // تسجيل Service Worker للسماح بالتثبيت والعمل بدون إنترنت
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')

@@ -1,6 +1,6 @@
 // Bump the version (e.g. counter-v2) to force re-caching after updating assets
 const CACHE_NAME = 'counter-v1';
-const ASSETS = ['./', './index.html', './styles.css'];
+const ASSETS = ['./', './index.html', './styles.css', './manifest.json'];
 
 self.addEventListener('install', (e) => {
     e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
