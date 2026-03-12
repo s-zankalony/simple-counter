@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
     <title>Simple Counter</title>
-    <!-- تضمين مكتبة Tailwind CSS للتصميم -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- تضمين مكتبة Tailwind CSS للتصميم (ملف محلي مُولَّد مسبقاً) -->
+    <link rel="stylesheet" href="styles.css">
     <style>
         /* إخفاء تأثير التحديد عند الضغط على الشاشات التي تعمل باللمس */
         body {
@@ -169,11 +169,20 @@
         document.head.appendChild(link);
 
         // 2. إنشاء Service Worker ديناميكياً للسماح بالتثبيت والعمل بدون إنترنت
+        const base = location.href.substring(0, location.href.lastIndexOf('/') + 1);
         const swCode = `
-            self.addEventListener('install', (e) => self.skipWaiting());
-            self.addEventListener('activate', (e) => self.clients.claim());
+            const CACHE_NAME = 'counter-v1';
+            const ASSETS = ['${base}', '${base}index.html', '${base}styles.css'];
+            self.addEventListener('install', (e) => {
+                e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+                self.skipWaiting();
+            });
+            self.addEventListener('activate', (e) => {
+                e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));
+                self.clients.claim();
+            });
             self.addEventListener('fetch', (e) => {
-                e.respondWith(fetch(e.request).catch(() => new Response('Offline Mode Active')));
+                e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
             });
         `;
         
