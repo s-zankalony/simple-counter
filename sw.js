@@ -1,5 +1,6 @@
 // Bump the version (e.g. counter-v2) to force re-caching after updating assets
-const CACHE_NAME = 'counter-v1';
+const CACHE_PREFIX = 'counter-';
+const CACHE_NAME = CACHE_PREFIX + 'v1';
 const ASSETS = ['./', './index.html', './styles.css', './manifest.json'];
 
 self.addEventListener('install', (e) => {
@@ -14,7 +15,10 @@ self.addEventListener('activate', (e) => {
     e.waitUntil(
         Promise.all([
             caches.keys().then(keys =>
-                Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+                Promise.all(
+                    keys.filter(k => k.startsWith(CACHE_PREFIX) && k !== CACHE_NAME)
+                        .map(k => caches.delete(k))
+                )
             ),
             self.clients.claim()
         ])
