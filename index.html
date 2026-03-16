@@ -88,22 +88,25 @@
             }
         }
 
-        // تتبع آخر وقت لمس لمنع العد المزدوج مع حدث click
-        let lastTouchTime = 0;
+        // علم لمنع العد المزدوج: تجاهل أول click بعد لمسة تم حسابها بالفعل
+        let suppressNextClick = false;
 
         // دعم اللمس المتعدد: يعمل اللمس بأي عدد من الأصابع كلمسة واحدة
         mainBtn.addEventListener('touchstart', (e) => {
             // العد فقط عندما تكون جميع اللمسات الحالية جديدة (بداية إيماءة جديدة)
             if (e.touches.length === e.changedTouches.length) {
-                lastTouchTime = Date.now();
+                suppressNextClick = true;
                 incrementCounter();
             }
         }, {passive: true});
 
         // وظيفة العد عند الضغط بالماوس أو لوحة المفاتيح
         mainBtn.addEventListener('click', (e) => {
-            // تجاهل حدث click إذا تم تشغيله بواسطة لمس حديث لمنع العد المزدوج
-            if (Date.now() - lastTouchTime < 500) return;
+            // تجاهل أول حدث click التالي بعد لمسة تم حسابها بالفعل لمنع العد المزدوج
+            if (suppressNextClick) {
+                suppressNextClick = false;
+                return;
+            }
             incrementCounter();
         });
 
