@@ -65,8 +65,8 @@
         mainBtn.addEventListener('mouseleave', removePressEffect);
         mainBtn.addEventListener('touchend', removePressEffect);
 
-        // وظيفة العد عند الضغط
-        mainBtn.addEventListener('click', (e) => {
+        // وظيفة العد المشتركة
+        function incrementCounter() {
             count++;
             
             // تغيير النص إلى الرقم وتكبير حجم الخط
@@ -86,6 +86,25 @@
                     navigator.vibrate(40);
                 } catch(e) {}
             }
+        }
+
+        // تتبع آخر وقت لمس لمنع العد المزدوج مع حدث click
+        let lastTouchTime = 0;
+
+        // دعم اللمس المتعدد: يعمل اللمس بأي عدد من الأصابع كلمسة واحدة
+        mainBtn.addEventListener('touchstart', (e) => {
+            // العد فقط عندما تكون جميع اللمسات الحالية جديدة (بداية إيماءة جديدة)
+            if (e.touches.length === e.changedTouches.length) {
+                lastTouchTime = Date.now();
+                incrementCounter();
+            }
+        }, {passive: true});
+
+        // وظيفة العد عند الضغط بالماوس أو لوحة المفاتيح
+        mainBtn.addEventListener('click', (e) => {
+            // تجاهل حدث click إذا تم تشغيله بواسطة لمس حديث لمنع العد المزدوج
+            if (Date.now() - lastTouchTime < 500) return;
+            incrementCounter();
         });
 
         // وظيفة إعادة الضبط
